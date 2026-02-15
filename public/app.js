@@ -99,10 +99,89 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Mock PDF/DOCX actions
-    document.querySelectorAll('.secondary-btn, .publish-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            alert('This feature is coming soon to the Workbench!');
-        });
+    // Chat Selectors
+    const chatToggleBtn = document.getElementById('chatToggleBtn');
+    const chatOverlay = document.getElementById('chatOverlay');
+    const closeChatBtn = document.getElementById('closeChatBtn');
+    const chatInput = document.getElementById('chatInput');
+    const sendMsgBtn = document.getElementById('sendMsgBtn');
+    const chatMessages = document.getElementById('chatMessages');
+
+    let messageHistory = [
+        { role: 'assistant', content: "Hello! I'm your AI PM Assistant. Paste your raw notes or 'brain dump' here, and I'll help you refine them into a structured PRD step-by-step." }
+    ];
+
+    /**
+     * Chat UI Helpers
+     */
+    const toggleChat = () => chatOverlay.classList.toggle('hidden');
+
+    const addMessageUI = (role, content) => {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `msg ${role}`;
+        msgDiv.textContent = content;
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return msgDiv;
+    };
+
+    /**
+     * Guided Chat Logic
+     */
+    chatToggleBtn.addEventListener('click', toggleChat);
+    closeChatBtn.addEventListener('click', toggleChat);
+
+    sendMsgBtn.addEventListener('click', async () => {
+        const text = chatInput.value.trim();
+        if (!text) return;
+
+        // Add user message
+        addMessageUI('user', text);
+        messageHistory.push({ role: 'user', content: text });
+        chatInput.value = '';
+        chatInput.style.height = 'auto';
+
+        // Add assistant placeholder
+        const assistantMsgDiv = addMessageUI('assistant', '...');
+        let assistantContent = '';
+
+        try {
+            sendMsgBtn.disabled = true;
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ history: messageHistory })
+            });
+
+            if (!response.ok) throw new Error('Assistant is temporarily unavailable.');
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            assistantMsgDiv.textContent = ''; // Clear placeholder
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                assistantContent += chunk;
+                assistantMsgDiv.textContent = assistantContent;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            messageHistory.push({ role: 'assistant', content: assistantContent });
+
+        } catch (error) {
+            assistantMsgDiv.textContent = `Error: ${error.message}`;
+            assistantMsgDiv.style.color = '#ef4444';
+        } finally {
+            sendMsgBtn.disabled = false;
+        }
     });
+
+    chatInput.addEventListener('input', () => {
+        chatInput.style.height = 'auto';
+        chatInput.style.height = chatInput.scrollHeight + 'px';
+    });
+
 });

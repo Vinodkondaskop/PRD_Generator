@@ -126,6 +126,74 @@ app.post('/api/generate', async (req, res) => {
     }
 });
 
+/**
+ * Endpoint for Iterative Guided Chat (Collaborator)
+ */
+app.post('/api/chat', async (req, res) => {
+    const { history } = req.body; // Array of { role: 'user'|'assistant', content: string }
+
+    if (!history || !history.length) {
+        return res.status(400).json({ error: 'Conversation history is required.' });
+    }
+
+    // Set headers for streaming
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Transfer-Encoding', 'chunked');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.write(' '.repeat(1024));
+
+    try {
+        const formattedHistory = history.map(m => `${m.role === 'user' ? 'USER' : 'ASSISTANT'}: ${m.content}`).join('\n');
+        const prompt = constructGuidedChatPrompt(formattedHistory);
+
+        console.log(`\n>>> [${new Date().toLocaleTimeString()}] CHAT REQUEST RECEIVED`);
+
+        const response = await axios.post(OLLAMA_URL, {
+            model: MODEL_NAME,
+            prompt: prompt,
+            stream: true,
+            options: { temperature: 0.7 } // Higher temperature for inquisitive chat
+        }, {
+            responseType: 'stream',
+            timeout: 300000
+        });
+
+        let buffer = '';
+        response.data.on('data', chunk => {
+            buffer += chunk.toString();
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
+
+            for (const line of lines) {
+                if (!line.trim()) continue;
+                try {
+                    const json = JSON.parse(line);
+                    if (json.response) res.write(json.response);
+                    if (json.done) res.end();
+                } catch (e) {
+                    // Ignore partial JSON
+                }
+            }
+        });
+
+        response.data.on('end', () => {
+            if (buffer.trim()) {
+                try {
+                    const json = JSON.parse(buffer);
+                    if (json.response) res.write(json.response);
+                } catch (e) { }
+            }
+            res.end();
+        });
+
+    } catch (error) {
+        console.error('Chat error:', error.message);
+        res.status(500).write(`Error: ${error.message}`);
+        res.end();
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`PM Helper Server running at http://localhost:${PORT}`);
     console.log(`Targeting Ollama at: ${OLLAMA_URL} using model: ${MODEL_NAME}`);

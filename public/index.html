@@ -110,12 +110,33 @@
             <div class="float-controls">
                 <button class="icon-btn" title="Scroll Top">↑</button>
                 <button class="icon-btn" title="View Outine">☰</button>
-                <button class="icon-btn primary-icon-btn" title="AI Chat">✨</button>
+                <button id="chatToggleBtn" class="icon-btn primary-icon-btn" title="PM Assistant ✨">✨</button>
             </div>
         </main>
     </div>
 
-    <script src="app.js?v=2.1"></script>
+    <!-- Chat Overlay -->
+    <div id="chatOverlay" class="chat-overlay hidden">
+        <div class="chat-header">
+            <div class="header-info">
+                <h3>PM Assistant</h3>
+                <span class="status">Guided Mode Active</span>
+            </div>
+            <button id="closeChatBtn" class="close-btn">×</button>
+        </div>
+        <div id="chatMessages" class="chat-messages">
+            <div class="msg assistant">
+                Hello! I'm your AI PM Assistant. Paste your raw notes or "brain dump" here, and I'll help you refine
+                them into a structured PRD step-by-step.
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <textarea id="chatInput" placeholder="Type your brain dump or answer..."></textarea>
+            <button id="sendMsgBtn">Send</button>
+        </div>
+    </div>
+
+    <script src="app.js?v=2.2"></script>
 </body>
 
 </html>
