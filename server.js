@@ -2,7 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const path = require('path');
-const { constructPrompt, validatePRD, constructGuidedChatPrompt } = require('./prompt_template');
+const { constructPrompt, validatePRD, constructGuidedChatPrompt, constructBrainDumpParserPrompt } = require('./prompt_template');
 
 const app = express();
 const PORT = process.env.PORT || 3008;
@@ -191,6 +191,45 @@ app.post('/api/chat', async (req, res) => {
         console.error('Chat error:', error.message);
         res.status(500).write(`Error: ${error.message}`);
         res.end();
+    }
+});
+
+/**
+ * Endpoint to parse raw brain dump into structured fields
+ */
+app.post('/api/parse-brain-dump', async (req, res) => {
+    const { brainDump } = req.body;
+    if (!brainDump) return res.status(400).json({ error: 'No brain dump provided.' });
+
+    try {
+        const prompt = constructBrainDumpParserPrompt(brainDump);
+        console.log(`\n>>> [${new Date().toLocaleTimeString()}] PARSE REQUEST RECEIVED`);
+
+        const response = await axios.post(OLLAMA_URL, {
+            model: MODEL_NAME,
+            prompt: prompt,
+            stream: false,
+            options: { temperature: 0.1 } // Very low temp for JSON consistency
+        });
+
+        const content = response.data.response.trim();
+        let json;
+        try {
+            // Find JSON in the response (in case AI added filler)
+            const jsonMatch = content.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                json = JSON.parse(jsonMatch[0]);
+                res.json(json);
+            } else {
+                throw new Error('No JSON found in response');
+            }
+        } catch (e) {
+            console.error('Failed to parse AI JSON:', content);
+            res.status(500).json({ error: 'AI failed to create structured data. Try again.' });
+        }
+    } catch (error) {
+        console.error('Parsing error:', error.message);
+        res.status(500).json({ error: error.message });
     }
 });
 

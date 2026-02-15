@@ -4,22 +4,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI PRD Workbench</title>
-    <link rel="stylesheet" href="style.css?v=2.2">
+    <title>AI PRD Workbench | Voice Expert</title>
+    <link rel="stylesheet" href="style.css?v=3.0">
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono&display=swap"
         rel="stylesheet">
 </head>
 
 <body>
+    <!-- Aesthetics Layer -->
+    <div class="background-overlay"></div>
+    <div class="background-image" style="background-image: url('luffy_bg.jpg');"></div>
+    <canvas id="rippleCanvas"></canvas>
+
     <div class="app-shell">
         <!-- Sidebar Navigation -->
-        <aside class="sidebar">
+        <aside class="sidebar glass">
             <div class="sidebar-header">
                 <div class="logo-box">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -28,7 +33,7 @@
                             stroke-linejoin="round" />
                     </svg>
                 </div>
-                <h2>AI PRD Workbench</h2>
+                <h2>AI Voice Workbench</h2>
             </div>
 
             <nav class="sidebar-nav">
@@ -42,11 +47,11 @@
                     <div class="row">
                         <div class="col">
                             <label>BUSINESS OBJECTIVE</label>
-                            <input type="text" id="businessObjective" placeholder="e.g. Increase Retention">
+                            <input type="text" id="businessObjective" placeholder="Increase Retention">
                         </div>
                         <div class="col">
                             <label>SUCCESS METRICS</label>
-                            <input type="text" id="successMetrics" placeholder="e.g. +15% DAU">
+                            <input type="text" id="successMetrics" placeholder="+15% DAU">
                         </div>
                     </div>
 
@@ -58,10 +63,10 @@
                 </div>
 
                 <div class="sidebar-footer">
-                    <button id="generateBtn" class="primary-btn">Generate PRD Draft</button>
+                    <button id="generateBtn" class="primary-btn">Orchestrate PRD Draft</button>
                     <div id="statusIndicator" class="status-indicator">
                         <span class="dot"></span>
-                        <span class="label">Ready to generate context...</span>
+                        <span class="label">System ready.</span>
                     </div>
                 </div>
             </nav>
@@ -69,58 +74,60 @@
 
         <!-- Main Workspace -->
         <main class="workbench">
-            <header class="top-bar">
-                <nav class="tabs">
-                    <button class="tab active">DOCUMENT</button>
-                    <button class="tab">HISTORY</button>
-                    <button class="tab">SETTINGS</button>
-                </nav>
+            <header class="top-bar glass">
+                <div class="voice-status-bar">
+                    <span id="voiceStatus">CLICK MIC TO START BRAIN DUMP</span>
+                </div>
             </header>
 
             <div class="document-container">
-                <article class="document-content">
+                <article class="document-content glass-card">
                     <div class="doc-meta">
-                        <span class="badge">V2.5 DRAFT</span>
-                        <span class="date">• EXPERT MODE</span>
+                        <span class="badge">V3.0 VOICE DRAFT</span>
+                        <span class="date">• AI PARSER ACTIVE</span>
                     </div>
-                    <h1 id="docTitle">Workbench Ready</h1>
-                    <p id="docSubtitle">Fill out the context in the sidebar or use the Assistant ✨ to begin.</p>
+                    <h1 id="docTitle">Voice Professional</h1>
+                    <p id="docSubtitle">The ultimate workbench for modern Product Managers.</p>
 
                     <div id="prdOutput" class="markdown-body">
-                        <!-- Content will be streamed here -->
+                        <!-- AI Response will stream here -->
                     </div>
                 </article>
             </div>
 
-            <!-- Float UI -->
-            <div class="float-controls">
-                <button id="chatToggleBtn" class="icon-btn primary-icon-btn" title="PM Assistant ✨">✨</button>
+            <!-- Bottom Controls -->
+            <div class="bottom-controls">
+                <div class="scroller-nav">
+                    <button class="nav-dot active" title="Document"></button>
+                    <button class="nav-dot" title="History"></button>
+                    <button class="nav-dot" title="Context Map"></button>
+                </div>
+                <button id="voiceBtn" class="voice-btn" title="Voice Brain Dump">
+                    <span class="mic-icon">🎙️</span>
+                    <span class="ripple-ring"></span>
+                </button>
             </div>
         </main>
     </div>
 
-    <!-- Chat Overlay -->
-    <div id="chatOverlay" class="chat-overlay hidden">
-        <div class="chat-header">
-            <div class="header-info">
-                <h3>PM Assistant</h3>
-                <span class="status">Guided Mode Active</span>
+    <!-- Voice Overlay (Appears when recording) -->
+    <div id="voiceOverlay" class="voice-overlay hidden">
+        <div class="voice-card glass">
+            <div class="wave-container">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
             </div>
-            <button id="closeChatBtn" class="close-btn">×</button>
-        </div>
-        <div id="chatMessages" class="chat-messages">
-            <div class="msg assistant">
-                Hello! I'm your AI PM Assistant. Paste your raw notes or "brain dump" here, and I'll help you refine
-                them into a structured PRD step-by-step.
-            </div>
-        </div>
-        <div class="chat-input-area">
-            <textarea id="chatInput" placeholder="Type your brain dump or answer..."></textarea>
-            <button id="sendMsgBtn">Send</button>
+            <h3>Listening to your brain dump...</h3>
+            <p id="transcriptPreview">I've noticed that patients often forget their followup appointments resulting in a
+                20% drop in...</p>
+            <button id="stopVoiceBtn">Finish & Parse</button>
         </div>
     </div>
 
-    <script src="app.js?v=2.3"></script>
+    <script src="app.js?v=3.0"></script>
 </body>
 
 </html>

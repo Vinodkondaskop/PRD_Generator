@@ -1,163 +1,185 @@
 /**
- * Frontend logic for AI PRD Workbench
+ * AI Voice Workbench Logic
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Selectors
-    const generateBtn = document.getElementById('generateBtn');
-    const featureNameInput = document.getElementById('featureName');
-    const problemStatementInput = document.getElementById('problemStatement');
-    const objectiveInput = document.getElementById('businessObjective');
-    const metricsInput = document.getElementById('successMetrics');
-    const personaInput = document.getElementById('targetPersona');
-    const constraintsInput = document.getElementById('constraints');
+    // --- UI ELEMENTS ---
+    const voiceBtn = document.getElementById('voiceBtn');
+    const voiceOverlay = document.getElementById('voiceOverlay');
+    const stopVoiceBtn = document.getElementById('stopVoiceBtn');
+    const transcriptPreview = document.getElementById('transcriptPreview');
+    const voiceStatus = document.getElementById('voiceStatus');
 
+    const generateBtn = document.getElementById('generateBtn');
     const prdOutput = document.getElementById('prdOutput');
     const statusIndicator = document.getElementById('statusIndicator');
-    const docTitle = document.getElementById('docTitle');
-    const docSubtitle = document.getElementById('docSubtitle');
 
-    let currentMarkdown = '';
+    // Form Fields
+    const fields = {
+        featureName: document.getElementById('featureName'),
+        problemStatement: document.getElementById('problemStatement'),
+        businessObjective: document.getElementById('businessObjective'),
+        successMetrics: document.getElementById('successMetrics'),
+        targetPersona: document.getElementById('targetPersona'),
+        constraints: document.getElementById('constraints')
+    };
 
-    // Real-time Title Sync
-    if (featureNameInput) {
-        featureNameInput.addEventListener('input', (e) => {
-            docTitle.textContent = e.target.value.trim() || 'Workbench Ready';
-        });
+    // --- RIPPLE ANIMATION (WATER EFFECT) ---
+    const canvas = document.getElementById('rippleCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let ripples = [];
+
+    const resize = () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    };
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Ripple {
+        constructor(x, y) {
+            this.x = x; this.y = y;
+            this.r = 0; this.opacity = 0.5;
+            this.speed = 4;
+        }
+        update() {
+            this.r += this.speed;
+            this.opacity -= 0.01;
+        }
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(255, 255, 255, ${this.opacity})`;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
     }
 
-    if (problemStatementInput) {
-        problemStatementInput.addEventListener('input', (e) => {
-            docSubtitle.textContent = e.target.value.trim() || 'Fill out the context in the sidebar or use the Assistant ✨ to begin.';
+    const animate = () => {
+        ctx.clearRect(0, 0, width, height);
+        ripples = ripples.filter(r => r.opacity > 0);
+        ripples.forEach(r => {
+            r.update();
+            r.draw();
         });
-    }
+        requestAnimationFrame(animate);
+    };
+    animate();
 
-    /**
-     * Handle Generation
-     */
-    if (generateBtn) {
-        generateBtn.addEventListener('click', async () => {
-            const payload = {
-                featureName: featureNameInput.value.trim(),
-                problemStatement: problemStatementInput.value.trim(),
-                businessObjective: objectiveInput.value.trim(),
-                successMetrics: metricsInput.value.trim(),
-                targetPersona: personaInput.value.trim(),
-                constraints: constraintsInput.value.trim()
-            };
+    window.addEventListener('mousemove', (e) => {
+        if (Math.random() > 0.8) { // Performance throttle
+            ripples.push(new Ripple(e.clientX, e.clientY));
+        }
+    });
 
-            if (!payload.featureName || !payload.problemStatement) {
-                alert('Feature Name and Problem Statement are required to begin drafting.');
-                return;
+    // --- VOICE LOGIC (Web Speech API) ---
+    let recognition;
+    if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        recognition.onresult = (event) => {
+            let final = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                final += event.results[i][0].transcript;
             }
+            transcriptPreview.textContent = final;
+        };
 
-            // UI State: Loading
-            generateBtn.disabled = true;
-            generateBtn.textContent = 'Orchestrating AI...';
-            statusIndicator.querySelector('.label').textContent = 'Analyzing context...';
-            statusIndicator.querySelector('.dot').style.background = '#1d4ed8';
-
-            prdOutput.innerHTML = '';
-            currentMarkdown = '';
-
-            try {
-                const response = await fetch('/api/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    const data = await response.json();
-                    throw new Error(data.error || 'Failed to generate PRD');
-                }
-
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-
-                    const chunk = decoder.decode(value, { stream: true });
-                    currentMarkdown += chunk;
-                    prdOutput.innerHTML = marked.parse(currentMarkdown);
-                    statusIndicator.querySelector('.label').textContent = 'Drafting details...';
-                }
-
-                statusIndicator.querySelector('.label').textContent = 'PRD Draft Complete.';
-                statusIndicator.querySelector('.dot').style.background = '#10b981';
-
-            } catch (error) {
-                console.error(error);
-                statusIndicator.querySelector('.label').textContent = `Error: ${error.message}`;
-                statusIndicator.querySelector('.dot').style.background = '#ef4444';
-                prdOutput.innerHTML = `<p style="color: #ef4444"><b>Generation Failed:</b> ${error.message}</p>`;
-            } finally {
-                generateBtn.disabled = false;
-                generateBtn.textContent = 'Generate PRD Draft';
-            }
-        });
+        recognition.onend = () => {
+            voiceOverlay.classList.add('hidden');
+            processBrainDump(transcriptPreview.textContent);
+        };
     }
 
-    // Chat Selectors
-    const chatToggleBtn = document.getElementById('chatToggleBtn');
-    const chatOverlay = document.getElementById('chatOverlay');
-    const closeChatBtn = document.getElementById('closeChatBtn');
-    const chatInput = document.getElementById('chatInput');
-    const sendMsgBtn = document.getElementById('sendMsgBtn');
-    const chatMessages = document.getElementById('chatMessages');
+    voiceBtn.addEventListener('click', () => {
+        if (!recognition) return alert("Voice recognition not supported in this browser.");
+        voiceOverlay.classList.remove('hidden');
+        transcriptPreview.textContent = 'Listening...';
+        recognition.start();
+    });
 
-    let messageHistory = [
-        { role: 'assistant', content: "Hello! I'm your AI PM Assistant. Paste your raw notes or 'brain dump' here, and I'll help you refine them into a structured PRD step-by-step." }
-    ];
+    stopVoiceBtn.addEventListener('click', () => {
+        recognition.stop();
+    });
 
-    if (chatToggleBtn && chatOverlay) {
-        chatToggleBtn.addEventListener('click', () => chatOverlay.classList.toggle('hidden'));
-        closeChatBtn.addEventListener('click', () => chatOverlay.classList.add('hidden'));
+    // --- AI PARSING LOGIC ---
+    async function processBrainDump(text) {
+        if (!text || text === 'Listening...') return;
 
-        sendMsgBtn.addEventListener('click', async () => {
-            const text = chatInput.value.trim();
-            if (!text) return;
+        voiceStatus.textContent = 'AI IS PARSING YOUR BRAIN DUMP...';
+        statusIndicator.querySelector('.label').textContent = 'Extracting fields...';
 
-            // Add user message
-            const uMsg = document.createElement('div');
-            uMsg.className = 'msg user';
-            uMsg.textContent = text;
-            chatMessages.appendChild(uMsg);
-            messageHistory.push({ role: 'user', content: text });
-            chatInput.value = '';
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+        try {
+            const response = await fetch('/api/parse-brain-dump', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ brainDump: text })
+            });
+            const data = await response.json();
 
-            // Assistant response
-            const aMsg = document.createElement('div');
-            aMsg.className = 'msg assistant';
-            aMsg.textContent = '...';
-            chatMessages.appendChild(aMsg);
-
-            try {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ history: messageHistory })
-                });
-
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let fullContent = '';
-                aMsg.textContent = '';
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    fullContent += decoder.decode(value, { stream: true });
-                    aMsg.textContent = fullContent;
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
+            // Auto-fill fields
+            Object.keys(fields).forEach(key => {
+                if (data[key]) {
+                    fields[key].value = data[key];
+                    // Trigger input event for title/subtitle sync
+                    fields[key].dispatchEvent(new Event('input'));
                 }
-                messageHistory.push({ role: 'assistant', content: fullContent });
-            } catch (e) {
-                aMsg.textContent = 'Error: ' + e.message;
-            }
-        });
+            });
+
+            voiceStatus.textContent = 'RECOGNITION COMPLETE. VERIFY FIELDS.';
+            statusIndicator.querySelector('.label').textContent = 'Context loaded.';
+            statusIndicator.querySelector('.dot').style.background = '#10b981';
+
+        } catch (e) {
+            voiceStatus.textContent = 'AI PARSING FAILED. PLEASE FILL MANUALLY.';
+            console.error(e);
+        }
     }
+
+    // --- PRD GENERATION LOGIC ---
+    generateBtn.addEventListener('click', async () => {
+        const payload = {};
+        Object.keys(fields).forEach(k => payload[k] = fields[k].value);
+
+        if (!payload.featureName || !payload.problemStatement) {
+            return alert("Minimally need Feature Name and Problem Statement!");
+        }
+
+        generateBtn.disabled = true;
+        prdOutput.innerHTML = '<i>Orchestrating professional draft...</i>';
+
+        try {
+            const response = await fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let content = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                content += decoder.decode(value, { stream: true });
+                prdOutput.innerHTML = marked.parse(content);
+            }
+        } catch (e) {
+            prdOutput.innerHTML = 'Error: ' + e.message;
+        } finally {
+            generateBtn.disabled = false;
+        }
+    });
+
+    // --- UI TOOLS ---
+    fields.featureName.addEventListener('input', (e) => {
+        document.getElementById('docTitle').textContent = e.target.value || 'Voice Professional';
+    });
+    fields.problemStatement.addEventListener('input', (e) => {
+        document.getElementById('docSubtitle').textContent = e.target.value || 'Brain dump parsed via AI.';
+    });
 });

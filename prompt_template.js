@@ -4,9 +4,9 @@
  */
 
 const MANDATORY_SECTIONS = [
-    "Introduction / Overview",
-    "Goals / Objectives",
-    "Target Audience / User Personas",
+    "Overview",
+    "Objectives",
+    "User Personas",
     "User Stories",
     "Functional Requirements",
     "Non-Functional Requirements",
@@ -99,4 +99,27 @@ Generate the draft PRD now. Focus on logical clarity and implementation readines
     return prompt;
 }
 
-module.exports = { constructPrompt, constructGuidedChatPrompt };
+/**
+ * Constructs a prompt to extract structured PRD fields from a raw brain dump.
+ */
+function constructBrainDumpParserPrompt(brainDump) {
+    return `Act as a Requirements Engineer. Extract structured PRD data from this raw brain dump (spoken or typed).
+Return ONLY a valid JSON object. DO NOT include any conversation or explanation.
+
+JSON STRUCTURE:
+{
+  "featureName": "Short descriptive name",
+  "problemStatement": "Core pain point being solved",
+  "businessObjective": "Primary goal",
+  "successMetrics": "KPIs (e.g. +10% growth)",
+  "targetPersona": "Primary user",
+  "constraints": "Technical or project limits"
+}
+
+BRAIN DUMP:
+"${brainDump}"
+
+RESPONSE (JSON ONLY):`;
+}
+
+module.exports = { constructPrompt, constructGuidedChatPrompt, constructBrainDumpParserPrompt };
