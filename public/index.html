@@ -4,14 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PM Helper | On-Prem PRD Engine</title>
-    <link rel="stylesheet" href="style.css?v=2">
+    <title>AI PRD Workbench</title>
+    <link rel="stylesheet" href="style.css?v=2.2">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono&display=swap"
         rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
@@ -73,21 +75,16 @@
                     <button class="tab">HISTORY</button>
                     <button class="tab">SETTINGS</button>
                 </nav>
-                <div class="actions">
-                    <button class="secondary-btn"><span class="icon">📄</span> PDF</button>
-                    <button class="secondary-btn"><span class="icon">📝</span> DOCX</button>
-                    <button class="publish-btn"><span class="icon">🚀</span> Publish</button>
-                </div>
             </header>
 
             <div class="document-container">
                 <article class="document-content">
                     <div class="doc-meta">
-                        <span class="badge">V2.4 DRAFT</span>
-                        <span class="date">• CREATED TODAY</span>
+                        <span class="badge">V2.5 DRAFT</span>
+                        <span class="date">• EXPERT MODE</span>
                     </div>
                     <h1 id="docTitle">Workbench Ready</h1>
-                    <p id="docSubtitle">Fill out the context in the sidebar to begin orchestration.</p>
+                    <p id="docSubtitle">Fill out the context in the sidebar or use the Assistant ✨ to begin.</p>
 
                     <div id="prdOutput" class="markdown-body">
                         <!-- Content will be streamed here -->
@@ -97,8 +94,6 @@
 
             <!-- Float UI -->
             <div class="float-controls">
-                <button class="icon-btn" title="Scroll Top">↑</button>
-                <button class="icon-btn" title="View Outine">☰</button>
                 <button id="chatToggleBtn" class="icon-btn primary-icon-btn" title="PM Assistant ✨">✨</button>
             </div>
         </main>
@@ -125,7 +120,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=2.2"></script>
+    <script src="app.js?v=2.3"></script>
 </body>
 
 </html>

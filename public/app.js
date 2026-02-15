@@ -20,84 +20,85 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentMarkdown = '';
 
     // Real-time Title Sync
-    featureNameInput.addEventListener('input', (e) => {
-        docTitle.textContent = e.target.value.trim() || 'Workbench Ready';
-    });
+    if (featureNameInput) {
+        featureNameInput.addEventListener('input', (e) => {
+            docTitle.textContent = e.target.value.trim() || 'Workbench Ready';
+        });
+    }
 
-    problemStatementInput.addEventListener('input', (e) => {
-        docSubtitle.textContent = e.target.value.trim() || 'Fill out the context in the sidebar to begin orchestration.';
-    });
+    if (problemStatementInput) {
+        problemStatementInput.addEventListener('input', (e) => {
+            docSubtitle.textContent = e.target.value.trim() || 'Fill out the context in the sidebar or use the Assistant ✨ to begin.';
+        });
+    }
 
     /**
      * Handle Generation
      */
-    generateBtn.addEventListener('click', async () => {
-        const payload = {
-            featureName: featureNameInput.value.trim(),
-            problemStatement: problemStatementInput.value.trim(),
-            businessObjective: objectiveInput.value.trim(),
-            successMetrics: metricsInput.value.trim(),
-            targetPersona: personaInput.value.trim(),
-            constraints: constraintsInput.value.trim()
-        };
+    if (generateBtn) {
+        generateBtn.addEventListener('click', async () => {
+            const payload = {
+                featureName: featureNameInput.value.trim(),
+                problemStatement: problemStatementInput.value.trim(),
+                businessObjective: objectiveInput.value.trim(),
+                successMetrics: metricsInput.value.trim(),
+                targetPersona: personaInput.value.trim(),
+                constraints: constraintsInput.value.trim()
+            };
 
-        if (!payload.featureName || !payload.problemStatement) {
-            alert('Feature Name and Problem Statement are required to begin drafting.');
-            return;
-        }
-
-        // UI State: Loading
-        generateBtn.disabled = true;
-        generateBtn.textContent = 'Orchestrating AI...';
-        statusIndicator.querySelector('.label').textContent = 'Analyzing context...';
-        statusIndicator.querySelector('.dot').style.background = '#1d4ed8';
-
-        prdOutput.innerHTML = '';
-        currentMarkdown = '';
-
-        try {
-            console.log('>>> [UI] Initiating Workbench Fetch');
-            const response = await fetch('/api/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.error || 'Failed to generate PRD');
+            if (!payload.featureName || !payload.problemStatement) {
+                alert('Feature Name and Problem Statement are required to begin drafting.');
+                return;
             }
 
-            // Streaming Handle
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
+            // UI State: Loading
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Orchestrating AI...';
+            statusIndicator.querySelector('.label').textContent = 'Analyzing context...';
+            statusIndicator.querySelector('.dot').style.background = '#1d4ed8';
 
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
+            prdOutput.innerHTML = '';
+            currentMarkdown = '';
 
-                const chunk = decoder.decode(value, { stream: true });
-                currentMarkdown += chunk;
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
 
-                // Update UI incrementally using marked
-                prdOutput.innerHTML = marked.parse(currentMarkdown);
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.error || 'Failed to generate PRD');
+                }
 
-                statusIndicator.querySelector('.label').textContent = 'Drafting user stories...';
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    currentMarkdown += chunk;
+                    prdOutput.innerHTML = marked.parse(currentMarkdown);
+                    statusIndicator.querySelector('.label').textContent = 'Drafting details...';
+                }
+
+                statusIndicator.querySelector('.label').textContent = 'PRD Draft Complete.';
+                statusIndicator.querySelector('.dot').style.background = '#10b981';
+
+            } catch (error) {
+                console.error(error);
+                statusIndicator.querySelector('.label').textContent = `Error: ${error.message}`;
+                statusIndicator.querySelector('.dot').style.background = '#ef4444';
+                prdOutput.innerHTML = `<p style="color: #ef4444"><b>Generation Failed:</b> ${error.message}</p>`;
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate PRD Draft';
             }
-
-            statusIndicator.querySelector('.label').textContent = 'PRD Draft Complete.';
-            statusIndicator.querySelector('.dot').style.background = '#10b981';
-
-        } catch (error) {
-            console.error(error);
-            statusIndicator.querySelector('.label').textContent = `Error: ${error.message}`;
-            statusIndicator.querySelector('.dot').style.background = '#ef4444';
-            prdOutput.innerHTML = `<p style="color: #ef4444"><b>Generation Failed:</b> ${error.message}</p>`;
-        } finally {
-            generateBtn.disabled = false;
-            generateBtn.textContent = 'Generate PRD Draft';
-        }
-    });
+        });
+    }
 
     // Chat Selectors
     const chatToggleBtn = document.getElementById('chatToggleBtn');
@@ -111,77 +112,52 @@ document.addEventListener('DOMContentLoaded', () => {
         { role: 'assistant', content: "Hello! I'm your AI PM Assistant. Paste your raw notes or 'brain dump' here, and I'll help you refine them into a structured PRD step-by-step." }
     ];
 
-    /**
-     * Chat UI Helpers
-     */
-    const toggleChat = () => chatOverlay.classList.toggle('hidden');
+    if (chatToggleBtn && chatOverlay) {
+        chatToggleBtn.addEventListener('click', () => chatOverlay.classList.toggle('hidden'));
+        closeChatBtn.addEventListener('click', () => chatOverlay.classList.add('hidden'));
 
-    const addMessageUI = (role, content) => {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `msg ${role}`;
-        msgDiv.textContent = content;
-        chatMessages.appendChild(msgDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        return msgDiv;
-    };
+        sendMsgBtn.addEventListener('click', async () => {
+            const text = chatInput.value.trim();
+            if (!text) return;
 
-    /**
-     * Guided Chat Logic
-     */
-    chatToggleBtn.addEventListener('click', toggleChat);
-    closeChatBtn.addEventListener('click', toggleChat);
+            // Add user message
+            const uMsg = document.createElement('div');
+            uMsg.className = 'msg user';
+            uMsg.textContent = text;
+            chatMessages.appendChild(uMsg);
+            messageHistory.push({ role: 'user', content: text });
+            chatInput.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    sendMsgBtn.addEventListener('click', async () => {
-        const text = chatInput.value.trim();
-        if (!text) return;
+            // Assistant response
+            const aMsg = document.createElement('div');
+            aMsg.className = 'msg assistant';
+            aMsg.textContent = '...';
+            chatMessages.appendChild(aMsg);
 
-        // Add user message
-        addMessageUI('user', text);
-        messageHistory.push({ role: 'user', content: text });
-        chatInput.value = '';
-        chatInput.style.height = 'auto';
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ history: messageHistory })
+                });
 
-        // Add assistant placeholder
-        const assistantMsgDiv = addMessageUI('assistant', '...');
-        let assistantContent = '';
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let fullContent = '';
+                aMsg.textContent = '';
 
-        try {
-            sendMsgBtn.disabled = true;
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ history: messageHistory })
-            });
-
-            if (!response.ok) throw new Error('Assistant is temporarily unavailable.');
-
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            assistantMsgDiv.textContent = ''; // Clear placeholder
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                const chunk = decoder.decode(value, { stream: true });
-                assistantContent += chunk;
-                assistantMsgDiv.textContent = assistantContent;
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    fullContent += decoder.decode(value, { stream: true });
+                    aMsg.textContent = fullContent;
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+                messageHistory.push({ role: 'assistant', content: fullContent });
+            } catch (e) {
+                aMsg.textContent = 'Error: ' + e.message;
             }
-
-            messageHistory.push({ role: 'assistant', content: assistantContent });
-
-        } catch (error) {
-            assistantMsgDiv.textContent = `Error: ${error.message}`;
-            assistantMsgDiv.style.color = '#ef4444';
-        } finally {
-            sendMsgBtn.disabled = false;
-        }
-    });
-
-    chatInput.addEventListener('input', () => {
-        chatInput.style.height = 'auto';
-        chatInput.style.height = chatInput.scrollHeight + 'px';
-    });
-
+        });
+    }
 });
