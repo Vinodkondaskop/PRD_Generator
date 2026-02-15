@@ -2,7 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const path = require('path');
-const { constructPrompt, validatePRD } = require('./prompt_template');
+const { constructPrompt, validatePRD, constructGuidedChatPrompt } = require('./prompt_template');
 
 const app = express();
 const PORT = process.env.PORT || 3008;
