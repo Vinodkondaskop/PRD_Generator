@@ -47,11 +47,11 @@ app.get('/', (req, res) => {
 app.post('/api/generate', async (req, res) => {
     console.log(`\n>>> [${new Date().toLocaleTimeString()}] RECEIVED REQUEST:`, req.body);
 
-    const { featureName, businessObjective, description } = req.body;
+    const { featureName, problemStatement } = req.body;
 
-    if (!featureName || !description) {
+    if (!featureName || !problemStatement) {
         console.error('Missing required fields');
-        return res.status(400).json({ error: 'Feature Name and Description are required.' });
+        return res.status(400).json({ error: 'Feature Name and Problem Statement are required.' });
     }
 
     // Set headers for streaming
@@ -61,11 +61,11 @@ app.post('/api/generate', async (req, res) => {
     res.setHeader('Connection', 'keep-alive');
     res.setHeader('X-Content-Type-Options', 'nosniff');
 
-    // BUFFER FLUSH: Send some whitespace to force the browser to start processing
+    // BUFFER FLUSH
     res.write(' '.repeat(1024));
 
     try {
-        const prompt = constructPrompt(featureName, businessObjective, description);
+        const prompt = constructPrompt(req.body);
         console.log(`>>> Sending prompt to Ollama (${MODEL_NAME})...`);
 
         const response = await axios.post(OLLAMA_URL, {

@@ -1,54 +1,67 @@
 /**
- * Frontend logic for PM Helper
+ * Frontend logic for AI PRD Workbench
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Selectors
     const generateBtn = document.getElementById('generateBtn');
     const featureNameInput = document.getElementById('featureName');
+    const problemStatementInput = document.getElementById('problemStatement');
     const objectiveInput = document.getElementById('businessObjective');
-    const descriptionInput = document.getElementById('description');
+    const metricsInput = document.getElementById('successMetrics');
+    const personaInput = document.getElementById('targetPersona');
+    const constraintsInput = document.getElementById('constraints');
 
-    const outputPanel = document.querySelector('.output-panel');
     const prdOutput = document.getElementById('prdOutput');
     const statusIndicator = document.getElementById('statusIndicator');
-    const copyBtn = document.getElementById('copyBtn');
+    const docTitle = document.getElementById('docTitle');
+    const docSubtitle = document.getElementById('docSubtitle');
 
     let currentMarkdown = '';
+
+    // Real-time Title Sync
+    featureNameInput.addEventListener('input', (e) => {
+        docTitle.textContent = e.target.value.trim() || 'Workbench Ready';
+    });
+
+    problemStatementInput.addEventListener('input', (e) => {
+        docSubtitle.textContent = e.target.value.trim() || 'Fill out the context in the sidebar to begin orchestration.';
+    });
 
     /**
      * Handle Generation
      */
     generateBtn.addEventListener('click', async () => {
-        const featureName = featureNameInput.value.trim();
-        const description = descriptionInput.value.trim();
-        const businessObjective = objectiveInput.value.trim();
+        const payload = {
+            featureName: featureNameInput.value.trim(),
+            problemStatement: problemStatementInput.value.trim(),
+            businessObjective: objectiveInput.value.trim(),
+            successMetrics: metricsInput.value.trim(),
+            targetPersona: personaInput.value.trim(),
+            constraints: constraintsInput.value.trim()
+        };
 
-        if (!featureName || !description) {
-            alert('Feature Name and Description are required.');
+        if (!payload.featureName || !payload.problemStatement) {
+            alert('Feature Name and Problem Statement are required to begin drafting.');
             return;
         }
 
         // UI State: Loading
         generateBtn.disabled = true;
-        generateBtn.textContent = 'Generating...';
-        statusIndicator.textContent = 'Orchestrating Llama 3.2 (3B) via Ollama...';
-        outputPanel.classList.remove('hidden');
-        prdOutput.innerHTML = '<p style="color: #666">Please wait while the PRD is structured...</p>';
-        outputPanel.scrollIntoView({ behavior: 'smooth' });
+        generateBtn.textContent = 'Orchestrating AI...';
+        statusIndicator.querySelector('.label').textContent = 'Analyzing context...';
+        statusIndicator.querySelector('.dot').style.background = '#1d4ed8';
+
+        prdOutput.innerHTML = '';
+        currentMarkdown = '';
 
         try {
-            console.log('>>> [UI] Initiating Fetch to /api/generate');
+            console.log('>>> [UI] Initiating Workbench Fetch');
             const response = await fetch('/api/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    featureName,
-                    businessObjective,
-                    description
-                })
+                body: JSON.stringify(payload)
             });
-
-            console.log('>>> [UI] Fetch Headers Received. Status:', response.status);
 
             if (!response.ok) {
                 const data = await response.json();
@@ -58,52 +71,38 @@ document.addEventListener('DOMContentLoaded', () => {
             // Streaming Handle
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
-            currentMarkdown = '';
-            prdOutput.innerHTML = ''; // Clear initial message
 
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
 
                 const chunk = decoder.decode(value, { stream: true });
-                if (chunk.trim()) console.log('Chunk received:', chunk.length, 'bytes');
                 currentMarkdown += chunk;
 
-                // Update UI incrementally
+                // Update UI incrementally using marked
                 prdOutput.innerHTML = marked.parse(currentMarkdown);
 
-                // Keep status updated
-                statusIndicator.textContent = 'Streaming implementation details...';
+                statusIndicator.querySelector('.label').textContent = 'Drafting user stories...';
             }
 
-            statusIndicator.textContent = 'PRD Generated Successfully.';
-            statusIndicator.style.color = '#007aff';
+            statusIndicator.querySelector('.label').textContent = 'PRD Draft Complete.';
+            statusIndicator.querySelector('.dot').style.background = '#10b981';
 
         } catch (error) {
             console.error(error);
-            statusIndicator.textContent = `Error: ${error.message}`;
-            statusIndicator.style.color = '#ff3b30';
-            prdOutput.innerHTML = `<p style="color: #ff3b30"><b>Generation Failed:</b> ${error.message}</p>`;
+            statusIndicator.querySelector('.label').textContent = `Error: ${error.message}`;
+            statusIndicator.querySelector('.dot').style.background = '#ef4444';
+            prdOutput.innerHTML = `<p style="color: #ef4444"><b>Generation Failed:</b> ${error.message}</p>`;
         } finally {
             generateBtn.disabled = false;
-            generateBtn.textContent = 'Generate PRD';
+            generateBtn.textContent = 'Generate PRD Draft';
         }
     });
 
-    /**
-     * Handle Copy
-     */
-    copyBtn.addEventListener('click', () => {
-        if (!currentMarkdown) return;
-
-        navigator.clipboard.writeText(currentMarkdown).then(() => {
-            const originalText = copyBtn.textContent;
-            copyBtn.textContent = 'Copied!';
-            setTimeout(() => {
-                copyBtn.textContent = originalText;
-            }, 2000);
-        }).catch(err => {
-            console.error('Could not copy text: ', err);
+    // Mock PDF/DOCX actions
+    document.querySelectorAll('.secondary-btn, .publish-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            alert('This feature is coming soon to the Workbench!');
         });
     });
 });

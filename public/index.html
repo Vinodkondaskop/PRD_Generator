@@ -15,46 +15,107 @@
 </head>
 
 <body>
-    <div class="container">
-        <header>
-            <h1>PM Helper</h1>
-            <p class="subtitle">Structured PRD Generator</p>
-        </header>
+    <div class="app-shell">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-box">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="24" height="24" rx="6" fill="#1d4ed8" />
+                        <path d="M7 12L10 15L17 8" stroke="white" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </div>
+                <h2>AI PRD Workbench</h2>
+            </div>
 
-        <main>
-            <section class="input-panel">
-                <div class="form-group">
-                    <label for="featureName">Feature Name</label>
-                    <input type="text" id="featureName" placeholder="e.g. ABHA Offline Registration" required>
-                </div>
-                <div class="form-group">
-                    <label for="businessObjective">Business Objective (Optional)</label>
-                    <input type="text" id="businessObjective" placeholder="What is the commercial or strategic goal?">
-                </div>
-                <div class="form-group">
-                    <label for="description">Detailed Description</label>
-                    <textarea id="description" placeholder="Describe the feature, user flows, and key constraints..."
-                        required></textarea>
-                </div>
-                <button id="generateBtn">Generate PRD</button>
-            </section>
+            <nav class="sidebar-nav">
+                <div class="input-section">
+                    <label>FEATURE NAME</label>
+                    <input type="text" id="featureName" placeholder="e.g. Smart Notification Engine">
 
-            <section class="output-panel hidden">
-                <div class="output-header">
-                    <h2>Generated PRD</h2>
-                    <button id="copyBtn" class="secondary-btn">Copy Markdown</button>
+                    <label>PROBLEM STATEMENT</label>
+                    <textarea id="problemStatement" placeholder="What pain point are we solving?"></textarea>
+
+                    <div class="row">
+                        <div class="col">
+                            <label>BUSINESS OBJECTIVE</label>
+                            <input type="text" id="businessObjective" placeholder="e.g. Increase Retention">
+                        </div>
+                        <div class="col">
+                            <label>SUCCESS METRICS</label>
+                            <input type="text" id="successMetrics" placeholder="e.g. +15% DAU">
+                        </div>
+                    </div>
+
+                    <label>TARGET PERSONA</label>
+                    <input type="text" id="targetPersona" placeholder="e.g. Enterprise Admins">
+
+                    <label>CONSTRAINTS & DEPENDENCIES</label>
+                    <textarea id="constraints" placeholder="Technical debt, API limits, etc."></textarea>
                 </div>
-                <div id="statusIndicator" class="status-bar"></div>
-                <div id="prdOutput" class="markdown-body"></div>
-            </section>
+
+                <div class="attachments-list">
+                    <label>CONTEXTUAL ATTACHMENTS</label>
+                    <div class="attachment-item">
+                        <div class="icon">📄</div>
+                        <div class="details">
+                            <span class="name">User_Research_2024.pdf</span>
+                            <span class="meta">PDF Document • 1.2 MB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-footer">
+                    <button id="generateBtn" class="primary-btn">Generate PRD Draft</button>
+                    <div id="statusIndicator" class="status-indicator">
+                        <span class="dot"></span>
+                        <span class="label">Ready to generate context...</span>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="workbench">
+            <header class="top-bar">
+                <nav class="tabs">
+                    <button class="tab active">DOCUMENT</button>
+                    <button class="tab">HISTORY</button>
+                    <button class="tab">SETTINGS</button>
+                </nav>
+                <div class="actions">
+                    <button class="secondary-btn"><span class="icon">📄</span> PDF</button>
+                    <button class="secondary-btn"><span class="icon">📝</span> DOCX</button>
+                    <button class="publish-btn"><span class="icon">🚀</span> Publish</button>
+                </div>
+            </header>
+
+            <div class="document-container">
+                <article class="document-content">
+                    <div class="doc-meta">
+                        <span class="badge">V2.4 DRAFT</span>
+                        <span class="date">• CREATED TODAY</span>
+                    </div>
+                    <h1 id="docTitle">Workbench Ready</h1>
+                    <p id="docSubtitle">Fill out the context in the sidebar to begin orchestration.</p>
+
+                    <div id="prdOutput" class="markdown-body">
+                        <!-- Content will be streamed here -->
+                    </div>
+                </article>
+            </div>
+
+            <!-- Float UI -->
+            <div class="float-controls">
+                <button class="icon-btn" title="Scroll Top">↑</button>
+                <button class="icon-btn" title="View Outine">☰</button>
+                <button class="icon-btn primary-icon-btn" title="AI Chat">✨</button>
+            </div>
         </main>
-
-        <footer>
-            <p>Llama 3.2 (3B) via Ollama • Local Execution</p>
-        </footer>
     </div>
 
-    <script src="app.js?v=2"></script>
+    <script src="app.js?v=2.1"></script>
 </body>
 
 </html>

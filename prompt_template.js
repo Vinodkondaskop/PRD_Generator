@@ -7,6 +7,7 @@ const MANDATORY_SECTIONS = [
     "Problem Statement",
     "User Personas",
     "Functional Requirements",
+    "User Stories",
     "Non-Functional Requirements",
     "Edge Cases and Failure Scenarios",
     "Estimation Breakdown",
@@ -31,28 +32,32 @@ function detectHealthcareContext(inputText) {
 /**
  * Constructs the system and user prompt for Ollama.
  */
-function constructPrompt(featureName, businessObjective, description) {
-    const isHealthcare = detectHealthcareContext(`${featureName} ${description} ${businessObjective}`);
+function constructPrompt(data) {
+    const { featureName, problemStatement, businessObjective, successMetrics, targetPersona, constraints } = data;
+    const isHealthcare = detectHealthcareContext(`${featureName} ${problemStatement} ${businessObjective}`);
 
-    let prompt = `Act as a Senior HealthTech PM. Generate a structured PRD.
+    let prompt = `Act as a Senior HealthTech PM. Generate a professional, highly structured PRD.
 NO conversational filler. NO emojis. Use Markdown.
 
 MANDATORY SECTIONS (Include these headers exactly):
 ${MANDATORY_SECTIONS.map((s, i) => `${i + 1}. ${s}`).join("\n")}
 
-ESTIMATION RULES:
-Breakdown task by: Backend, Frontend, Integration, QA.
-Provide: Optimistic, Realistic, Pessimistic days + Risk drivers.
+FORMATTING RULES:
+1. "User Stories" MUST be a Markdown table with columns: ID, User Story, Priority (e.g., P0-Critical, P1-High, P2-Medium).
+2. "Estimation Breakdown" MUST be a Markdown table with Optimistic, Realistic, and Pessimistic days.
 
 ${isHealthcare ? `HEALTHCARE CONTEXT:
 In 'Compliance Considerations', include: Consent flow, Audit trails, Encryption, Access control, and Data retention.` : ""}
 
-INPUT:
-Feature: ${featureName}
-Objective: ${businessObjective || "Not provided"}
-Description: ${description}
+INPUT CONTEXT:
+Feature Name: ${featureName}
+Problem Statement: ${problemStatement}
+Business Objective: ${businessObjective}
+Success Metrics: ${successMetrics}
+Target Persona: ${targetPersona}
+Constraints & Dependencies: ${constraints}
 
-Generate PRD now.`;
+Generate PRD now. Focus on the core problem being solved.`;
 
     return prompt;
 }
