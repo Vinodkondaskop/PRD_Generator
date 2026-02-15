@@ -103,23 +103,24 @@ Generate the draft PRD now. Focus on logical clarity and implementation readines
  * Constructs a prompt to extract structured PRD fields from a raw brain dump.
  */
 function constructBrainDumpParserPrompt(brainDump) {
-    return `Act as a Requirements Engineer. Extract structured PRD data from this raw brain dump (spoken or typed).
-Return ONLY a valid JSON object. DO NOT include any conversation or explanation.
+    return `### TASK: EXTRACT JSON DATA FROM BRAIN DUMP ::: STRICTLY NO CONVERSATION ###
+Extract the following fields from the raw text provided. 
+If a field is unknown, use an empty string.
 
-JSON STRUCTURE:
+REQUIRED JSON FORMAT:
 {
-  "featureName": "Short descriptive name",
-  "problemStatement": "Core pain point being solved",
-  "businessObjective": "Primary goal",
-  "successMetrics": "KPIs (e.g. +10% growth)",
-  "targetPersona": "Primary user",
-  "constraints": "Technical or project limits"
+  "featureName": "string",
+  "problemStatement": "string",
+  "businessObjective": "string",
+  "successMetrics": "string",
+  "targetPersona": "string",
+  "constraints": "string"
 }
 
-BRAIN DUMP:
+BRAIN DUMP TEXT:
 "${brainDump}"
 
-RESPONSE (JSON ONLY):`;
+### RESPONSE (Valid JSON only):`;
 }
 
 module.exports = { constructPrompt, constructGuidedChatPrompt, constructBrainDumpParserPrompt };

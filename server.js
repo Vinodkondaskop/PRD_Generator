@@ -215,17 +215,21 @@ app.post('/api/parse-brain-dump', async (req, res) => {
         const content = response.data.response.trim();
         let json;
         try {
-            // Find JSON in the response (in case AI added filler)
-            const jsonMatch = content.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-                json = JSON.parse(jsonMatch[0]);
+            // Find the first { and the last }
+            const start = content.indexOf('{');
+            const end = content.lastIndexOf('}');
+
+            if (start !== -1 && end !== -1 && end > start) {
+                const jsonStr = content.substring(start, end + 1);
+                json = JSON.parse(jsonStr);
                 res.json(json);
             } else {
-                throw new Error('No JSON found in response');
+                console.error('No JSON block found in AI response:', content);
+                res.status(500).json({ error: 'AI failed to format response correctly. Please try speaking again.' });
             }
         } catch (e) {
-            console.error('Failed to parse AI JSON:', content);
-            res.status(500).json({ error: 'AI failed to create structured data. Try again.' });
+            console.error('Failed to parse AI JSON string:', content, '\nError:', e.message);
+            res.status(500).json({ error: 'AI response was malformed. Try a simpler description.' });
         }
     } catch (error) {
         console.error('Parsing error:', error.message);
