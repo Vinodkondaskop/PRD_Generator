@@ -1,12 +1,13 @@
 :root {
-    --bg-main: #f8fafc;
-    --sidebar-bg: rgba(255, 255, 255, 0.25);
-    /* More transparent */
-    --accent-blue: #1d4ed8;
-    --accent-blue-light: #eff6ff;
-    --border-color: rgba(226, 232, 240, 0.3);
-    --text-primary: #1e293b;
-    --text-muted: #64748b;
+    --bg-main: #f0f9ff;
+    --sidebar-bg: rgba(255, 255, 255, 0.4);
+    --accent-blue: #f97316;
+    /* High contrast Orange for sea theme */
+    --accent-blue-light: #fff7ed;
+    --border-color: rgba(255, 255, 255, 0.5);
+    --text-primary: #0f172a;
+    /* Deep Slate for maximum readability */
+    --text-muted: #334155;
     --font-sans: 'Outfit', system-ui, -apple-system, sans-serif;
     --sidebar-width: 320px;
 }
@@ -18,16 +19,16 @@
 }
 
 body {
-    background-color: #000;
+    background-color: #001e33;
+    /* Deep sea backup */
     color: var(--text-primary);
     font-family: var(--font-sans);
     height: 100vh;
     overflow: hidden;
     position: relative;
-    /* Forced background backup */
-    background-image: url('luffy_bg.png');
+    background-image: url('sea.jpg');
     background-size: cover;
-    background-position: center 20%;
+    background-position: center;
 }
 
 /* Background Aesthetics */
@@ -37,14 +38,13 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-image: url('luffy_bg.png');
+    background-image: url('sea.jpg');
     background-size: cover;
-    background-position: center 20%;
+    background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
     z-index: -2;
-    filter: brightness(1) contrast(1.1) saturate(1.1);
-    /* Brighter and clearer */
+    filter: brightness(1.1) contrast(1.1) saturate(1.2);
 }
 
 .background-overlay {
@@ -53,8 +53,8 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.1);
-    /* Very subtle overlay */
+    background: rgba(255, 255, 255, 0.05);
+    /* Very light light-wash */
     z-index: -1;
 }
 
