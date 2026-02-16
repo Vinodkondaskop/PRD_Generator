@@ -1,13 +1,11 @@
 :root {
-    --bg-main: #f0f9ff;
-    --sidebar-bg: rgba(255, 255, 255, 0.4);
-    --accent-blue: #f97316;
-    /* High contrast Orange for sea theme */
-    --accent-blue-light: #fff7ed;
-    --border-color: rgba(255, 255, 255, 0.5);
+    --bg-main: #ffffff;
+    --sidebar-bg: #f8fafc;
+    --accent-blue: #1d4ed8;
+    --accent-blue-light: #eff6ff;
+    --border-color: #e2e8f0;
     --text-primary: #0f172a;
-    /* Deep Slate for maximum readability */
-    --text-muted: #334155;
+    --text-muted: #64748b;
     --font-sans: 'Outfit', system-ui, -apple-system, sans-serif;
     --sidebar-width: 320px;
 }
@@ -19,63 +17,30 @@
 }
 
 body {
-    background-color: #001e33;
-    /* Deep sea backup */
+    background-color: var(--bg-main);
     color: var(--text-primary);
     font-family: var(--font-sans);
     height: 100vh;
     overflow: hidden;
     position: relative;
-    background-image: url('sea.jpg');
-    background-size: cover;
-    background-position: center;
 }
 
-/* Background Aesthetics */
+/* Background Aesthetics (Disabled) */
 .background-image {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-image: url('sea.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    z-index: -2;
-    filter: brightness(1.1) contrast(1.1) saturate(1.2);
+    display: none;
 }
 
 .background-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(255, 255, 255, 0.05);
-    /* Very light light-wash */
-    z-index: -1;
+    display: none;
 }
 
 #rippleCanvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 100;
-    pointer-events: none;
-    mix-blend-mode: screen;
-    /* Brighter ripples */
+    display: none;
 }
 
 .glass {
-    backdrop-filter: blur(12px) saturate(160%);
-    -webkit-backdrop-filter: blur(12px) saturate(160%);
-    background-color: rgba(255, 255, 255, 0.3);
-    /* High transparency */
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
 }
 
 .app-shell {
@@ -91,13 +56,12 @@ body {
     width: var(--sidebar-width);
     display: flex;
     flex-direction: column;
-    margin: 20px;
-    border-radius: 24px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    border-right: 1px solid var(--border-color);
+    background: var(--sidebar-bg);
 }
 
 .sidebar-header {
-    padding: 32px;
+    padding: 24px;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -274,31 +238,37 @@ h1 {
     margin-bottom: 40px;
 }
 
-/* Bottom Controls */
-.bottom-controls {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 40px 30px;
+/* Hide horizontal scrollbars and clean up overflow */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(15, 23, 42, 0.2) transparent;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 0px;
+    /* Force hide horizontal scroller */
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(15, 23, 42, 0.2);
+    border-radius: 10px;
 }
 
 .scroller-nav {
+    display: none !important;
+}
+
+.bottom-controls {
     display: flex;
-    gap: 12px;
-}
-
-.nav-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.8);
-    background: none;
-    cursor: pointer;
-}
-
-.nav-dot.active {
-    background: #fff;
-    border-color: #fff;
+    align-items: center;
+    justify-content: flex-end;
+    /* Move Mic to far right */
+    padding: 0 40px 30px;
 }
 
 .voice-btn {
